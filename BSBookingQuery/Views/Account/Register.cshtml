@@ -1,0 +1,94 @@
+﻿<script type="text/javascript">
+    var app = angular.module('RegisterApp', []);
+
+    app.controller('RegisterController', function ($scope, $http, $window) {
+        $scope.userType = "0";
+
+        $scope.SignUp = () => {
+            var fullName = $scope.fullName;
+            var email = $scope.email;
+            var password = $scope.password;
+            var userType = $scope.userType;
+
+            if (typeof fullName === 'undefined' || fullName == "") {
+                alert('Full Name field is empty');
+            }
+            else if (typeof email === 'undefined' || email == "") {
+                alert('Email field is empty');
+            }
+            else if (typeof password === 'undefined' || password == "") {
+                alert('Password field is empty');
+            }
+            else if (typeof userType === 'undefined' || userType == "") {
+                alert('User Type field is empty');
+            }
+            else {
+                var registerRequestModel = {
+                    'fullName': fullName,
+                    'email': email,
+                    'password': password,
+                    'userTypeId': userType
+                };
+
+                $http.post("https://localhost:7132/Account/Register", registerRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        if(response.data == null || response.data == "null"){
+                            alert("Login failed!");
+                        }
+                        else{
+                            localStorage.setItem("email", response.data.email);
+                            localStorage.setItem("fullName", response.data.fullName);
+                            localStorage.setItem("password", response.data.password);
+                            localStorage.setItem("userTypeName", response.data.userTypeName);
+                            window.location.replace("/Home/Index");
+                        }
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                    })
+            }
+        }
+
+        $scope.GetTypesList = () => {
+            console.log("1");
+            $http.get("https://localhost:7132/Account/GetAllUserTypes", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    console.log(response.data);
+                    $scope.listOfTypes = response.data;
+                }, function (error) {
+                    alert("Failed to load labels");
+                });
+        }
+    });
+
+</script>
+
+<div ng-app="RegisterApp">
+    <div ng-controller="RegisterController">
+        <h1 class="text-center">Register</h1>
+
+        <form ng-init="GetTypesList()">
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Full Name</label>
+                <input type="text" class="form-control" id="fullName" ng-model="fullName">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="text" class="form-control" id="email" ng-model="email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" ng-model="password">
+            </div>
+            <div class="mb-3">
+                <label for="userType" class="form-label">User Type</label>
+                <select style="border: 1px solid #46b8da;" class="btn btn-default" ng-model="userType">
+                    <option value="0">Select UserType</option>
+                    <option ng-repeat="type in listOfTypes" value="{{type.userTypeId}}">{{type.userTypeName}}</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary" ng-click="SignUp()">SignUp</button>
+        </form>
+    </div>
+
+</div>

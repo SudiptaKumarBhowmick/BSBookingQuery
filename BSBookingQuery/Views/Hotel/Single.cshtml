@@ -1,0 +1,119 @@
+﻿<script type="text/javascript">
+    var app = angular.module('SingleHotelInfoApp', []);
+
+    app.controller('SingleHotelInfoController', function ($scope, $http, $window) {
+        var hotelInfo;
+
+        $scope.LoadSingleHotelInfo = () => {
+            $http.get("https://localhost:7132/Hotel/GetAllHotels", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.listOfHotel = response.data;
+                    const queryString = window.location.search;
+                    const urlParams = new URLSearchParams(queryString);
+                    if(urlParams.has('id')){
+                        const id = urlParams.get('id');
+                        hotelInfo = $scope.listOfHotel.filter(x => x.id == id)[0];
+                        $scope.ratings = hotelInfo.ratings;
+                        $scope.hotelName = hotelInfo.name;
+                        $scope.hotelLocation = hotelInfo.location;
+                        $scope.hotelId = hotelInfo.hotelId;
+                    }
+                }, function (error) {
+                    alert("Failed to load hotels");
+                });
+        }
+
+        $scope.AddNewComment = function () {
+            var userId = localStorage.getItem("id");
+            var comment = $scope.comment;
+
+            if (typeof userId === 'undefined' || userId == "" || userId == null || userId == "null") {
+                alert('Login Required!');
+            }
+            else if (typeof comment === 'undefined' || comment == "") {
+                alert('Comment field is empty');
+            }
+            else {
+                var commentRequestModel = {
+                    'Comment': comment,
+                    'UserId': userId,
+                    'HotelId': hotelInfo.id
+                };
+                console.log(commentRequestModel);
+
+                $http.post("https://localhost:7132/Comment/AddComment", commentRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        $scope.GetAllComments();
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                    })
+            }
+        }
+
+        $scope.GetAllComments = () => {
+            $http.get("https://localhost:7132/Comment/GetAllComments", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.allComments = response.data;
+                    $scope.comment = "";
+                }, function (error) {
+                    alert("Failed to load comments");
+                });
+            }
+
+    });
+</script>
+
+
+<div ng-app="SingleHotelInfoApp">
+    <div ng-controller="SingleHotelInfoController" ng-init="LoadSingleHotelInfo()">
+        <div class="container">
+            <div class="row">
+                <h1 class="text-center">Hotel Information</h1>
+
+                <div class="col-md-6">
+                    <img src="/images/hotel.png" alt="hotel.png" height="250" width="350" />
+                </div>
+                <div class="col-md-6 mt-5">
+                    <h3>Ratings: {{ratings}}</h3>
+                    <h3>{{hotelName}}</h3>
+                    <h3>{{hotelLocation}}</h3>
+                </div>
+                <div class="col-md-12 mt-3">
+                    <h3>Hotel id: {{hotelId}}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-5" ng-init="GetAllComments()">
+            <div class="card-body" ng-repeat="comment in allComments track by $index">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <span>{{comment.comment}}</span>
+                        </div>
+                        <div class="col-md-2">
+                            <span>{{comment.user.fullName}} - </span>
+                            <span>{{comment.commentDate | date:'medium'}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" id="comment" ng-model="comment" autocomplete="off">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary" ng-click="AddNewComment()">
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

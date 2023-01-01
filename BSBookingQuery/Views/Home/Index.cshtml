@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<script type="text/javascript">
+    var app = angular.module('HomeApp', []);
+
+    app.controller('HomeController', function ($scope, $http, $window) {
+
+        $scope.lowerRatings = "0";
+        $scope.higherRatings = "0";
+        $scope.ratingsList = [
+            {
+                'id': 1,
+                'name': '1'
+            },
+            {
+                'id': 2,
+                'name': '2'
+            },
+            {
+                'id': 3,
+                'name': '3'
+            },
+            {
+                'id': 4,
+                'name': '4'
+            },
+            {
+                'id': 5,
+                'name': '5'
+            }
+        ]
+
+        $scope.SearchByName = () => {
+            if (typeof $scope.searchName === 'undefined' || $scope.searchName == "") {
+                alert('Search field is empty');
+            }
+            else {
+                window.location.replace("/Hotel/List?search=" + $scope.searchName);
+            }
+        }
+
+        $scope.SearchByRatings = () => {
+            if (typeof $scope.lowerRatings === '0' || $scope.lowerRatings == "0") {
+                alert('Lower ratings field is empty');
+            }
+            else if (typeof $scope.higherRatings === '0' || $scope.higherRatings == "0") {
+                alert('Higher ratings field is empty');
+            }
+            else{
+                window.location.replace("/Hotel/List?lower=" + $scope.lowerRatings + "&upper=" + $scope.higherRatings);
+            }
+        }
+
+    });
+</script>
+
+
+<div ng-app="HomeApp">
+    <div ng-controller="HomeController">
+        <div class="container-fluid">
+            <form class="d-flex">
+                <input class="form-control me-2" type="search" placeholder="Search" ng-model="searchName" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit" ng-click="SearchByName()">Search</button>
+            </form>
+        </div>
+        <div class="container-fluid mt-3">
+            <form class="d-flex">
+                <select style="border: 1px solid #46b8da;" class="btn btn-default" ng-model="lowerRatings">
+                    <option value="0">Lower Ratings</option>
+                    <option ng-repeat="rating in ratingsList" value="{{rating.id}}">{{rating.name}}</option>
+                </select>
+                <select style="border: 1px solid #46b8da;" class="btn btn-default" ng-model="higherRatings">
+                    <option value="0">Higher Ratings</option>
+                    <option ng-repeat="rating in ratingsList" value="{{rating.id}}">{{rating.name}}</option>
+                </select>
+                <button class="btn btn-outline-success" type="submit" ng-click="SearchByRatings()">Search</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,237 @@
+﻿<script type="text/javascript">
+    var app = angular.module('HotelCRUDApp', []);
+
+    app.controller('HotelCRUDController', function ($scope, $http, $window) {
+        $scope.locationDropdown = "0";
+
+        $scope.LoadAllHotels = () => {
+            $http.get("https://localhost:7132/Hotel/GetAllHotels", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.listOfHotel = response.data;
+                }, function (error) {
+                    alert("Failed to load hotels");
+                });
+        }
+
+        $scope.GetLabelsList = () => {
+            $http.get("https://localhost:7132/Label/GetAllLabels", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.listOfLabel = response.data;
+                }, function (error) {
+                    alert("Failed to load labels");
+                });
+        }
+
+        $scope.AddNewHotel = function () {
+            var hotelName = $scope.hotelName;
+            var hotelName = $scope.hotelName;
+            var hotelRatings = $scope.hotelRatings;
+            var locationDropdown = $scope.locationDropdown;
+
+            if (typeof hotelName === 'undefined' || hotelName == "") {
+                alert('Name field is empty');
+            }
+            else if (typeof hotelRatings === 'undefined' || hotelRatings == "") {
+                alert('Ratings field is empty');
+            }
+            else if (typeof locationDropdown === 'undefined' || locationDropdown == "") {
+                alert('Location field is empty');
+            }
+            else {
+                var hotelRequestModel = {
+                    'Name': hotelName,
+                    'Ratings': hotelRatings,
+                    'LabelId': locationDropdown
+                };
+
+                $http.post("https://localhost:7132/Hotel/AddHotel", hotelRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        alert("Successful");
+                        $('#createHotelModal').modal('hide');
+                        $scope.LoadAllHotels();
+                        $scope.ResetFields();
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                        $('#createHotelModal').modal('hide');
+                        $scope.ResetFields();
+                    })
+            }
+        }
+
+        $scope.GetHotel = function (id) {
+            $http.get("https://localhost:7132/Hotel/GetHotelById/" + id, { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.editHotelId = id;
+                    $scope.editName = response.data.name;
+                    $scope.editRatings = response.data.ratings;
+                    $scope.editLocationDropdown = response.data.labelId.toString();
+                }, function (error) {
+                    alert("Failed to get hotel");
+                });
+        }
+
+        $scope.UpdateHotel = function () {
+            var hotelId = $scope.editHotelId;
+            var hotelName = $scope.editName;
+            var hotelRatings = $scope.editRatings;
+            var locationDropdown = $scope.editLocationDropdown;
+
+            if (typeof hotelName === 'undefined' || hotelName == "") {
+                alert('Name field is empty');
+            }
+            else if (typeof hotelRatings === 'undefined' || hotelRatings == "") {
+                alert('Ratings field is empty');
+            }
+            else if (typeof locationDropdown === 'undefined' || locationDropdown == "") {
+                alert('Location field is empty');
+            }
+            else {
+                var hotelRequestModel = {
+                    'Name': hotelName,
+                    'Ratings': hotelRatings,
+                    'LabelId': locationDropdown
+                };
+
+                $http.put("https://localhost:7132/Hotel/UpdateHotel/" + hotelId, hotelRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        alert("Successful");
+                        $('#updateHotelModal').modal('hide');
+                        $scope.LoadAllHotels();
+                        $scope.ResetFields();
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                        $('#updateHotelModal').modal('hide');
+                        $scope.ResetFields();
+                    })
+            }
+        }
+
+        $scope.DeleteHotel = function (id) {
+            $http.delete("https://localhost:7132/Hotel/DeleteHotel/" + id)
+                .then(function (response) {
+                    alert("Successful");
+                    $scope.LoadAllHotels();
+                }, function (error) {
+                    console.log(error);
+                    alert("Failed");
+                })
+        }
+
+        $scope.ResetFields = function () {
+            $scope.hotelName = "";
+            $scope.hotelRatings = "";
+            $scope.locationDropdown = "0";
+        }
+
+    });
+</script>
+
+<div ng-app="HotelCRUDApp">
+    <div ng-controller="HotelCRUDController" ng-init="LoadAllHotels()">
+        <h1>Hotels</h1>
+
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createHotelModal">
+            Create New Hotel
+        </button>
+
+        <!-- Add New Hotel Modal -->
+        <div class="modal fade" id="createHotelModal" tabindex="-1" aria-labelledby="createHotelModal" aria-hidden="true" ng-init="GetLabelsList()">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Hotel Information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="hotelName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="hotelName" ng-model="hotelName" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="hotelRatings" class="form-label">Ratings</label>
+                            <input type="text" class="form-control" id="hotelRatings" ng-model="hotelRatings" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="locationDropdown" class="form-label">Location</label>
+                            <select style="border: 1px solid #46b8da;" class="btn btn-default" ng-model="locationDropdown">
+                                <option value="0">Select Location</option>
+                                <option ng-repeat="label in listOfLabel" value="{{label.id}}">{{label.location}}</option>
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" ng-click="AddNewHotel()">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table class="table mt-5">
+            <thead>
+                <tr>
+                    <th>Hotel Id</th>
+                    <th>Name</th>
+                    <th>Ratings</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="hotel in listOfHotel track by $index">
+                    <td>{{hotel.hotelId}}</td>
+                    <td>{{hotel.name}}</td>
+                    <td>{{hotel.ratings}}</td>
+                    <td>{{hotel.label.location}}</td>
+                    <td>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateHotelModal" ng-click="GetHotel(hotel.id)">
+                        Edit
+                        </button>
+                        <button type="button" class="btn btn-danger" ng-click="DeleteHotel(hotel.id)">
+                        Delete
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Edit New Hotel Modal -->
+        <div class="modal fade" id="updateHotelModal" tabindex="-1" aria-labelledby="updateHotelModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Hotel Information</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3" style="display: none;">
+                            <input type="text" class="form-control" id="editHotelId" ng-model="editHotelId" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="editName" ng-model="editName" autocomplete="off">
+                    </div>
+                    <div class="mb-3">
+                            <label for="editRatings" class="form-label">Ratings</label>
+                            <input type="text" class="form-control" id="editRatings" ng-model="editRatings" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLocationDropdown" class="form-label">Location</label>
+                            <select style="border: 1px solid #46b8da;" class="btn btn-default" ng-model="editLocationDropdown">
+                                <option value="0">Select Location</option>
+                                <option ng-repeat="label in listOfLabel" value="{{label.id}}">{{label.location}}</option>
+                            </select>
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" ng-click="UpdateHotel()">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    </div>
+</div>

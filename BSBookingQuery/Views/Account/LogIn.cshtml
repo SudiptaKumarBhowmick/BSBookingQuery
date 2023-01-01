@@ -1,0 +1,62 @@
+﻿<script type="text/javascript">
+    var app = angular.module('LoginApp', []);
+
+    app.controller('LoginController', function ($scope, $http, $window) {
+        $scope.Login = () => {
+            var email = $scope.email;
+            var password = $scope.password;
+
+            if (typeof email === 'undefined' || email == "") {
+                alert('Email field is empty');
+            }
+            else if (typeof password === 'undefined' || password == "") {
+                alert('Password field is empty');
+            }
+            else {
+                var loginRequestModel = {
+                    'email': email,
+                    'password': password
+                };
+
+                $http.post("https://localhost:7132/Account/LogIn", loginRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        if(response.data == null || response.data == "null"){
+                            alert("Login failed!");
+                        }
+                        else{
+                            console.log(response.data);
+                            localStorage.setItem("id", response.data.id);
+                            localStorage.setItem("email", response.data.email);
+                            localStorage.setItem("fullName", response.data.fullName);
+                            localStorage.setItem("password", response.data.password);
+                            localStorage.setItem("userTypeName", response.data.userTypeName);
+                            window.location.replace("/Home/Index");
+                        }
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                    })
+            }
+        }
+    });
+
+</script>
+
+<div ng-app="LoginApp">
+    <div ng-controller="LoginController">
+        <h1 class="text-center">LogIn</h1>
+
+        <form>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" ng-model="email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" ng-model="password">
+            </div>
+            <button type="submit" class="btn btn-primary" ng-click="Login()">LogIn</button>
+        </form>
+    </div>
+
+</div>

@@ -1,0 +1,74 @@
+﻿<script type="text/javascript">
+    var app = angular.module('HotelListApp', []);
+
+    app.controller('HotelListController', function ($scope, $http, $window) {
+
+        $scope.ListOfHotels = () => {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            if (urlParams.has('search')) {
+                const searchParam = urlParams.get('search');
+                console.log(searchParam);
+
+                var searchRequestBodyModel = {
+                    "name": searchParam
+                };
+
+                $scope.SearchHotelByParams(searchRequestBodyModel);
+            }
+            else if (urlParams.has('lower') && urlParams.has('upper')) {
+                const lowerParam = urlParams.get('lower');
+                const upperParam = urlParams.get('upper');
+                console.log(lowerParam);
+                console.log(upperParam);
+
+                var searchRequestBodyModel = {
+                    "lowerRatings": lowerParam,
+                    "upperRatings": upperParam
+                };
+
+                $scope.SearchHotelByParams(searchRequestBodyModel);
+            }
+        }
+
+        $scope.SearchHotelByParams = (searchRequestBodyModel) => {
+            $http.post("https://localhost:7132/Hotel/GetHotelsBySearchParam", searchRequestBodyModel, { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.hotels = response.data;
+                }, function (error) {
+                    console.log(error);
+                    alert("Failed");
+                })
+        }
+
+        $scope.Navigate = (id) => {
+            window.location.replace("/Hotel/Single?id=" + id);
+        }
+
+    });
+</script>
+
+
+
+<div ng-app="HotelListApp">
+    <div ng-controller="HotelListController">
+        <div class="container-fluid" ng-init="ListOfHotels()">
+            <div class="card" ng-repeat="hotel in hotels">
+                <div class="row" ng-click="Navigate(hotel.id)" style="cursor: pointer;">
+                    <div class="col-md-4">
+                        <img src="/images/hotel.png" alt="hotel.png" class="img-fluid rounded-start" />
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h4>Hotel Id: {{hotel.hotelId}}</h4>
+                            <h4>Hotel Name: {{hotel.name}}</h4>
+                            <h4>Ratings: {{hotel.ratings}}</h4>
+                            <h4>Location: {{hotel.label.location}}</h4>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

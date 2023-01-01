@@ -1,0 +1,176 @@
+﻿<script type="text/javascript">
+    var app = angular.module('LabelCRUDApp', []);
+
+    app.controller('LabelCRUDController', function ($scope, $http, $window) {
+        $scope.LoadAllLabels = () => {
+            $http.get("https://localhost:7132/Label/GetAllLabels", { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.listOfLabel = response.data;
+                }, function (error) {
+                    alert("Failed to load labels");
+                });
+        }
+
+        $scope.GetLabel = (id) => {
+            $http.get("https://localhost:7132/Label/GetLabelById/" + id, { headers: { 'Content-Type': 'application/json' } })
+                .then(function (response) {
+                    $scope.editLocation = response.data.location;
+                    $scope.editLabelId = id;
+                }, function (error) {
+                    alert("Failed to get label");
+                });
+        }
+
+        $scope.AddNewLabel = function () {
+            var location = $scope.location;
+
+            if (typeof location === 'undefined' || location == "") {
+                alert('Location field is empty');
+            }
+            else {
+                var labelRequestModel = {
+                    'location': location
+                };
+
+                $http.post("https://localhost:7132/Label/AddLabel", labelRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        alert("Successful");
+                        $('#createLabelModal').modal('hide');
+                        $scope.LoadAllLabels();
+                        $scope.ResetFields();
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                        $('#createLabelModal').modal('hide');
+                        $scope.ResetFields();
+                    })
+            }
+        }
+
+        $scope.UpdateLabel = function () {
+            var location = $scope.editLocation;
+            var labelId = $scope.editLabelId;
+
+            if (typeof location === 'undefined' || location == "") {
+                alert('Location field is empty');
+            }
+            else {
+                var labelRequestModel = {
+                    'location': location
+                };
+
+                $http.put("https://localhost:7132/Label/UpdateLabel/" + labelId, labelRequestModel, { headers: { 'Content-Type': 'application/json' } })
+                    .then(function (response) {
+                        alert("Successful");
+                        $('#updateLabelModal').modal('hide');
+                        $scope.LoadAllLabels();
+                        $scope.ResetFields();
+                    }, function (error) {
+                        console.log(error);
+                        alert("Failed");
+                        $('#updateLabelModal').modal('hide');
+                        $scope.ResetFields();
+                    })
+            }
+        }
+
+        $scope.DeleteLabel = function (id) {
+            $http.delete("https://localhost:7132/Label/DeleteLabel/" + id)
+                .then(function (response) {
+                    alert("Successful");
+                    $scope.LoadAllLabels();
+                }, function (error) {
+                    console.log(error);
+                    alert("Failed");
+                })
+        }
+
+        $scope.ResetFields = function () {
+            $scope.location = "";
+            $scope.editLocation = "";
+        }
+
+    });
+</script>
+
+<div ng-app="LabelCRUDApp">
+    <div ng-controller="LabelCRUDController" ng-init="LoadAllLabels()">
+        <h1 class="text-center">Locations</h1>
+
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLabelModal">
+            Create New Label
+        </button>
+
+        <!-- Add New Label Modal -->
+        <div class="modal fade" id="createLabelModal" tabindex="-1" aria-labelledby="createLabelModal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Label Information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" ng-model="location" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" ng-click="AddNewLabel()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Edit New Label Modal -->
+        <div class="modal fade" id="updateLabelModal" tabindex="-1" aria-labelledby="updateLabelModal" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Label Information</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3" style="display: none;">
+                            <input type="text" class="form-control" id="editLabelId" ng-model="editLabelId" autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editLocation" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="editLocation" ng-model="editLocation" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" ng-click="UpdateLabel()">Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <table class="table mt-5">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="label in listOfLabel track by $index">
+                    <td>{{label.location}}</td>
+                    <td>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateLabelModal" ng-click="GetLabel(label.id)">
+                            Edit
+                        </button>
+                        <button type="button" class="btn btn-danger" ng-click="DeleteLabel(label.id)">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
